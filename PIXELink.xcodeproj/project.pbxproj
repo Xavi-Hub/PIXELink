@@ -12,10 +12,12 @@
 		5F6429C820E2D74400C677F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5F6429C720E2D74400C677F9 /* Assets.xcassets */; };
 		5F6429D620E2D74400C677F9 /* PIXELinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6429D520E2D74400C677F9 /* PIXELinkTests.swift */; };
 		5F6429E120E2D74400C677F9 /* PIXELinkUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6429E020E2D74400C677F9 /* PIXELinkUITests.swift */; };
-		5F6429EF20E2D89800C677F9 /* PhotoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6429EE20E2D89800C677F9 /* PhotoViewController.swift */; };
-		5F77609720E3367700329627 /* Photo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F77609520E3367700329627 /* Photo+CoreDataClass.swift */; };
-		5F77609820E3367700329627 /* Photo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F77609620E3367700329627 /* Photo+CoreDataProperties.swift */; };
 		5F77609A20E33B0400329627 /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F77609920E33B0400329627 /* PersistenceService.swift */; };
+		5FA203B020E6DDA200DF551F /* Photo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA203AE20E6DDA200DF551F /* Photo+CoreDataClass.swift */; };
+		5FA203B120E6DDA200DF551F /* Photo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA203AF20E6DDA200DF551F /* Photo+CoreDataProperties.swift */; };
+		5FA203B320E6F67900DF551F /* DrawingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA203B220E6F67900DF551F /* DrawingView.swift */; };
+		5FA203B720E6F78400DF551F /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA203B620E6F78400DF551F /* Extensions.swift */; };
+		5FA203B920E6FD4B00DF551F /* DrawingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA203B820E6FD4B00DF551F /* DrawingViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,10 +49,12 @@
 		5F6429DC20E2D74400C677F9 /* PIXELinkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PIXELinkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F6429E020E2D74400C677F9 /* PIXELinkUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIXELinkUITests.swift; sourceTree = "<group>"; };
 		5F6429E220E2D74400C677F9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5F6429EE20E2D89800C677F9 /* PhotoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoViewController.swift; sourceTree = "<group>"; };
-		5F77609520E3367700329627 /* Photo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataClass.swift"; sourceTree = "<group>"; };
-		5F77609620E3367700329627 /* Photo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		5F77609920E33B0400329627 /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceService.swift; sourceTree = "<group>"; };
+		5FA203AE20E6DDA200DF551F /* Photo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataClass.swift"; sourceTree = "<group>"; };
+		5FA203AF20E6DDA200DF551F /* Photo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		5FA203B220E6F67900DF551F /* DrawingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingView.swift; sourceTree = "<group>"; };
+		5FA203B620E6F78400DF551F /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		5FA203B820E6FD4B00DF551F /* DrawingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,13 +105,13 @@
 		5F6429BC20E2D74200C677F9 /* PIXELink */ = {
 			isa = PBXGroup;
 			children = (
+				5FA203B820E6FD4B00DF551F /* DrawingViewController.swift */,
+				5FA203B220E6F67900DF551F /* DrawingView.swift */,
+				5FA203B620E6F78400DF551F /* Extensions.swift */,
+				5FA203B420E6F73600DF551F /* Other */,
 				5F77609020E3360B00329627 /* CoreData */,
-				5F6429BD20E2D74200C677F9 /* AppDelegate.swift */,
 				5F6429C720E2D74400C677F9 /* Assets.xcassets */,
 				5F6429CC20E2D74400C677F9 /* Info.plist */,
-				5F6429C420E2D74200C677F9 /* PIXELink.xcdatamodeld */,
-				5F6429EE20E2D89800C677F9 /* PhotoViewController.swift */,
-				5F77609920E33B0400329627 /* PersistenceService.swift */,
 			);
 			path = PIXELink;
 			sourceTree = "<group>";
@@ -133,10 +137,20 @@
 		5F77609020E3360B00329627 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
-				5F77609520E3367700329627 /* Photo+CoreDataClass.swift */,
-				5F77609620E3367700329627 /* Photo+CoreDataProperties.swift */,
+				5F6429C420E2D74200C677F9 /* PIXELink.xcdatamodeld */,
+				5FA203AE20E6DDA200DF551F /* Photo+CoreDataClass.swift */,
+				5FA203AF20E6DDA200DF551F /* Photo+CoreDataProperties.swift */,
 			);
 			path = CoreData;
+			sourceTree = "<group>";
+		};
+		5FA203B420E6F73600DF551F /* Other */ = {
+			isa = PBXGroup;
+			children = (
+				5F6429BD20E2D74200C677F9 /* AppDelegate.swift */,
+				5F77609920E33B0400329627 /* PersistenceService.swift */,
+			);
+			path = Other;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -268,12 +282,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5FA203B320E6F67900DF551F /* DrawingView.swift in Sources */,
+				5FA203B020E6DDA200DF551F /* Photo+CoreDataClass.swift in Sources */,
 				5F6429C620E2D74200C677F9 /* PIXELink.xcdatamodeld in Sources */,
+				5FA203B720E6F78400DF551F /* Extensions.swift in Sources */,
+				5FA203B920E6FD4B00DF551F /* DrawingViewController.swift in Sources */,
 				5F77609A20E33B0400329627 /* PersistenceService.swift in Sources */,
 				5F6429BE20E2D74200C677F9 /* AppDelegate.swift in Sources */,
-				5F77609720E3367700329627 /* Photo+CoreDataClass.swift in Sources */,
-				5F77609820E3367700329627 /* Photo+CoreDataProperties.swift in Sources */,
-				5F6429EF20E2D89800C677F9 /* PhotoViewController.swift in Sources */,
+				5FA203B120E6DDA200DF551F /* Photo+CoreDataProperties.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

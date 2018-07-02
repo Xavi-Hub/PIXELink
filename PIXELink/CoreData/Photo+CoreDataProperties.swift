@@ -2,7 +2,7 @@
 //  Photo+CoreDataProperties.swift
 //  PIXELink
 //
-//  Created by Xavi Anderhub on 6/26/18.
+//  Created by Xavi Anderhub on 6/29/18.
 //  Copyright © 2018 Xavi Anderhub. All rights reserved.
 //
 //
@@ -17,9 +17,7 @@ extension Photo {
         return NSFetchRequest<Photo>(entityName: "Photo")
     }
 
+    @NSManaged public var photoData: NSData?
     @NSManaged public var localIdentifier: String?
-    @NSManaged public var red: Float
-    @NSManaged public var green: Float
-    @NSManaged public var blue: Float
 
 }
