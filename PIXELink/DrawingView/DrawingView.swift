@@ -111,7 +111,7 @@ class DrawingView: UIView, PinchContentDelegate {
     func setupViews() {
         layer.cornerRadius = 25
         layer.masksToBounds = true
-        backgroundColor = .white
+        backgroundColor = UIColor(red: 250/255, green: 250/255, blue: 250/255, alpha: 1)
         isMultipleTouchEnabled = true
         
     }

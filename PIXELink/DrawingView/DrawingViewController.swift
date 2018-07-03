@@ -194,8 +194,7 @@ class DrawingViewController: UIViewController {
     }
     
     @objc func handleClear(sender: Any?) {
-//        drawingView.clear()
-        
+        drawingView.clear()
     }
     
     
@@ -334,10 +333,25 @@ class DrawingViewController: UIViewController {
         guard let imageContext = CGContext(data: imageData, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else { return NSData() }
         imageContext.draw(cgImage, in: CGRect(origin: CGPoint.zero, size: resizedPhoto.size))
         
-//        let pixels = UnsafeMutableBufferPointer<RGBAPixel>(start: imageData, count: width * height)
+        let pixels = UnsafeMutableBufferPointer<RGBAPixel>(start: imageData, count: width * height)
         
-        let dataObject = NSData(bytes: imageData, length: width * height)
+//        let newContext = CGContext(data: pixels.baseAddress, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo, releaseCallback: nil, releaseInfo: nil)
+//        addAndSetupImageView(withImage: UIImage(cgImage: (newContext?.makeImage()!)!))
+        
+//        let dataObject = NSData(bytes: imageData, length: width * height)
+        
+        let dataObject = Data.init(buffer: pixels) as NSData
+        
         return dataObject
+    }
+    
+    func addAndSetupImageView(withImage image: UIImage) {
+        DispatchQueue.main.async {
+            let imageView = UIImageView(image: image)
+            self.view.addSubview(imageView)
+            imageView.frame = CGRect(x: 50, y: 50, width: 200, height: 200)
+            imageView.contentMode = .scaleToFill
+        }
     }
     
     var newPhotoCount = 0

@@ -88,26 +88,36 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
     }
 
     func processDifferences() {
+//        var drawnPhotoData = drawnPhoto as Data
+//        let pointer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer.allocate(capacity: drawnPhotoData.count)
+//        let bufferPointer: UnsafeMutableBufferPointer = UnsafeMutableBufferPointer(start: pointer, count: drawnPhotoData.count)
+//        _ = drawnPhotoData.copyBytes(to: bufferPointer)
+        
         let rawDrawnData = drawnPhoto.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
         let drawnPixels = UnsafeBufferPointer<RGBAPixel>(start: rawDrawnData, count: 32 * 32)
         for photo in dataArray {
             let rawPhotoData = photo.photoData?.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
             let photoPixels = UnsafeBufferPointer<RGBAPixel>(start: rawPhotoData, count: 32 * 32)
             var photoDifference = 0.0
+            var processedPixels = 0
             for i in 0..<photoPixels.count {
                 let currentDrawnPixel = drawnPixels[i]
                 let currentPhotoPixel = photoPixels[i]
+                if currentDrawnPixel.red == 250 && currentDrawnPixel.green == 250 && currentDrawnPixel.blue == 250 {
+                    continue
+                }
                 let absRedDifference = abs(Int(currentDrawnPixel.red) - Int(currentPhotoPixel.red))
                 let absGreenDifference = abs(Int(currentDrawnPixel.green) - Int(currentPhotoPixel.green))
                 let absBlueDifference = abs(Int(currentDrawnPixel.blue) - Int(currentPhotoPixel.blue))
                 let pixelDifference = absRedDifference + absGreenDifference + absBlueDifference
                 photoDifference += Double(pixelDifference)/(255*3)
+                processedPixels += 1
             }
             let currentAssetIndex = assets.index(where: { (asset) -> Bool in
                 return asset.asset.localIdentifier == photo.localIdentifier
                 })
             let currentAsset = assets[currentAssetIndex!]
-            currentAsset.photoDifference = photoDifference / (32 * 32)
+            currentAsset.photoDifference = photoDifference / (Double (processedPixels))
         }
     }
     
