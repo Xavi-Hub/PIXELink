@@ -10,12 +10,11 @@ import UIKit
 import CoreImage
 import CoreData
 import Photos
-
+import CoreGraphics
 
 class DrawingViewController: UIViewController {
 
     var dataArray = [Photo]()
-    var imageArray = [UIImage]()
     var portraitConstraints = [NSLayoutConstraint]()
     var landscapeConstraints = [NSLayoutConstraint]()
     var drawingView: DrawingView = {
@@ -77,7 +76,7 @@ class DrawingViewController: UIViewController {
         navigationController?.navigationBar.tintColor = UIColor.white
         navigationController?.navigationBar.barTintColor = UIColor(white: 0.2, alpha: 1)
         view.backgroundColor = UIColor(white: 0.3, alpha: 1)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .undo, target: self, action: #selector(handleUndo(sender:)))
+        navigationItem.rightBarButtonItems = [UIBarButtonItem(barButtonSystemItem: .undo, target: self, action: #selector(handleUndo(sender:))), UIBarButtonItem(title: "Search", style: .plain, target: self, action: #selector(search))]
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Clear", style: .plain, target: self, action: #selector(handleClear(sender:)))
         
         let containerView1 = UIView()
@@ -195,17 +194,21 @@ class DrawingViewController: UIViewController {
     }
     
     @objc func handleClear(sender: Any?) {
-        drawingView.clear()
+//        drawingView.clear()
+        
     }
     
-    @objc func handleSaveImage(sender: Any?) {
-        let imageView = UIImageView()
-        var newImage = drawingView.saveImage()
-        newImage = resizeImage(image: newImage, targetSize: CGSize(width: 32, height: 32))
-        imageView.image = newImage
-        imageView.contentMode = .scaleAspectFit
-        imageView.frame = CGRect(x: 50, y: 50, width: 200, height: 200)
-        view.addSubview(imageView)
+    
+    
+    func getDrawnPhoto(sender: Any?) -> NSData {
+        let drawnPhoto = drawingView.saveImage()
+        return getPhotoData(image: drawnPhoto)
+    }
+    
+    @objc func search() {
+        let photo = getDrawnPhoto(sender: nil)
+        let photosCollectionViewController = PhotosCollectionViewController(photo: photo, dataArray: dataArray)
+        navigationController?.pushViewController(photosCollectionViewController, animated: true)
     }
     
     @objc func handleSliderUpdate(sender: Any?) {
@@ -241,13 +244,12 @@ class DrawingViewController: UIViewController {
         drawingView.changeCurrentColor(newColor: newGray)
     }
     
-    let imgManager=PHImageManager.default()
     
     func grabPhotos() {
-        imageArray = []
-        
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .background).async {[unowned self] in
             
+            let imgManager=PHImageManager.default()
+
             let photoRequestOptions=PHImageRequestOptions()
             photoRequestOptions.isSynchronous=true
             photoRequestOptions.deliveryMode = .highQualityFormat
@@ -272,19 +274,17 @@ class DrawingViewController: UIViewController {
             }
             if photoFetchResult.count > 0 {
                 for i in 0..<photoFetchResult.count{
-                    let identifier = photoFetchResult[i].localIdentifier
-                    if !identifiers.contains(identifier) {
-                        self.imgManager.requestImage(for: photoFetchResult.object(at: i) as PHAsset, targetSize: CGSize(width:500, height: 500),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: { (image, error) in
-                            self.savePhotoData(newPhoto: image!, localIdentifier: identifier)
-                        })
+                    autoreleasepool {
+                        let identifier = photoFetchResult[i].localIdentifier
+                        if !identifiers.contains(identifier) {
+                            imgManager.requestImage(for: photoFetchResult.object(at: i) as PHAsset, targetSize: CGSize(width:500, height: 500),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: {[unowned self] (image, error) in
+                                self.savePhotoData(newPhoto: image!, localIdentifier: identifier)
+                            })
+                        }
                     }
                 }
             } else {
-                print("You got no photos.")
-            }
-            
-            DispatchQueue.main.async {
-                
+                print("No photos found.")
             }
         }
     }
@@ -297,56 +297,59 @@ class DrawingViewController: UIViewController {
         UIGraphicsEndImageContext()
         return newImage!
     }
-    
+
+    // Resizes photo and returns a data object of RBGA Pixels
+    func getPhotoData(image: UIImage) -> NSData {
+        
+//        let resizedPhoto = resizeImage(image: image, targetSize: CGSize(width: 32, height: 32))
+//        let height = Int(resizedPhoto.size.height)
+//        let width = Int(resizedPhoto.size.width)
+//
+//        let bitsPerComponent = Int(8)
+//        let bytesPerRow = 4 * width
+//        let colorSpace = CGColorSpaceCreateDeviceRGB()
+//        let rawData = UnsafeMutablePointer<RGBAPixel>.allocate(capacity: (width * height))
+//        let bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue
+//        let CGPointZero = CGPoint(x: 0, y: 0)
+//        let rect = CGRect(origin: CGPointZero, size: resizedPhoto.size)
+//
+//        weak var imageContext = CGContext(data: rawData, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo)
+//
+//        imageContext?.draw(resizedPhoto.cgImage!, in: rect)
+
+        let resizedPhoto = resizeImage(image: image, targetSize: CGSize(width: 32, height: 32))
+        guard let cgImage = resizedPhoto.cgImage else { return NSData() } // 1
+        
+        let width = Int(resizedPhoto.size.width)
+        let height = Int(resizedPhoto.size.height)
+        let bitsPerComponent = 8 // 2
+        
+        let bytesPerPixel = 4
+        let bytesPerRow = width * bytesPerPixel
+        let imageData = UnsafeMutablePointer<RGBAPixel>.allocate(capacity: width * height)
+        let colorSpace = CGColorSpaceCreateDeviceRGB() // 3
+        
+        var bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue
+        bitmapInfo |= CGImageAlphaInfo.premultipliedLast.rawValue & CGBitmapInfo.alphaInfoMask.rawValue
+        guard let imageContext = CGContext(data: imageData, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else { return NSData() }
+        imageContext.draw(cgImage, in: CGRect(origin: CGPoint.zero, size: resizedPhoto.size))
+        
+//        let pixels = UnsafeMutableBufferPointer<RGBAPixel>(start: imageData, count: width * height)
+        
+        let dataObject = NSData(bytes: imageData, length: width * height)
+        return dataObject
+    }
     
     var newPhotoCount = 0
+    
     func savePhotoData(newPhoto: UIImage, localIdentifier: String) {
         print("Processing new image: \(newPhotoCount)")
         newPhotoCount += 1
         let newData = Photo(context: PersistenceService.context)
         newData.localIdentifier = localIdentifier
-        let resizedPhoto = resizeImage(image: newPhoto, targetSize: CGSize(width: 32, height: 32))
-        
-        let height = Int(resizedPhoto.size.height)
-        let width = Int(resizedPhoto.size.width)
-        
-        let bitsPerComponent = Int(8)
-        let bytesPerRow = 4 * width
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let rawData = UnsafeMutablePointer<RGBAPixel>.allocate(capacity: (width * height))
-        let bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue
-        let CGPointZero = CGPoint(x: 0, y: 0)
-        let rect = CGRect(origin: CGPointZero, size: resizedPhoto.size)
-        
-        let imageContext = CGContext(data: rawData, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo)
-        
-        imageContext?.draw(resizedPhoto.cgImage!, in: rect)
-        
-        //        let pixels = UnsafeMutableBufferPointer<RGBAPixel>(start: rawData, count: width * height)
-        
-        let dataToStore = NSData(bytes: rawData, length: width * height)
-        newData.photoData = dataToStore
-        
+        newData.photoData = getPhotoData(image: newPhoto)
         PersistenceService.saveContext()
         dataArray.append(newData)
-    }
-    
-    func colorDifference(dPhoto: UIColor, photo: Photo) -> Float {
-        
-        return 0
-    }
-    
-    func findBestPhoto() -> UIImage {
-        let bestData = dataArray[0]
-        var bestPhoto = UIImage()
-        let photoRequestOptions=PHImageRequestOptions()
-        photoRequestOptions.isSynchronous=true
-        photoRequestOptions.deliveryMode = .highQualityFormat
-        let asset = PHAsset.fetchAssets(withLocalIdentifiers: [bestData.localIdentifier!], options: .none)
-        imgManager.requestImage(for: asset[0], targetSize: CGSize(width:500, height: 500),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: { (image, error) in
-            bestPhoto = image!
-        })
-        return bestPhoto
     }
     
 

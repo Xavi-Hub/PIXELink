@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5F1EDDE520EAAEBD0012CF0E /* DataAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F1EDDE420EAAEBD0012CF0E /* DataAsset.swift */; };
+		5F2DF75420EA86A600B4CB01 /* PhotosCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2DF75320EA86A600B4CB01 /* PhotosCollectionViewController.swift */; };
+		5F2DF75620EA8F7B00B4CB01 /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2DF75520EA8F7B00B4CB01 /* PhotoCell.swift */; };
 		5F6429BE20E2D74200C677F9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6429BD20E2D74200C677F9 /* AppDelegate.swift */; };
 		5F6429C620E2D74200C677F9 /* PIXELink.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5F6429C420E2D74200C677F9 /* PIXELink.xcdatamodeld */; };
 		5F6429C820E2D74400C677F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5F6429C720E2D74400C677F9 /* Assets.xcassets */; };
@@ -38,6 +41,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5F1EDDE420EAAEBD0012CF0E /* DataAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataAsset.swift; sourceTree = "<group>"; };
+		5F2DF75320EA86A600B4CB01 /* PhotosCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosCollectionViewController.swift; sourceTree = "<group>"; };
+		5F2DF75520EA8F7B00B4CB01 /* PhotoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCell.swift; sourceTree = "<group>"; };
 		5F6429BA20E2D74200C677F9 /* PIXELink.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PIXELink.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F6429BD20E2D74200C677F9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5F6429C520E2D74200C677F9 /* PIXELink.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PIXELink.xcdatamodel; sourceTree = "<group>"; };
@@ -82,6 +88,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5F2DF75720EA8F8600B4CB01 /* PhotosCollectionView */ = {
+			isa = PBXGroup;
+			children = (
+				5F2DF75320EA86A600B4CB01 /* PhotosCollectionViewController.swift */,
+				5F2DF75520EA8F7B00B4CB01 /* PhotoCell.swift */,
+				5F1EDDE420EAAEBD0012CF0E /* DataAsset.swift */,
+			);
+			path = PhotosCollectionView;
+			sourceTree = "<group>";
+		};
+		5F2DF75820EA8F9C00B4CB01 /* DrawingView */ = {
+			isa = PBXGroup;
+			children = (
+				5FA203B820E6FD4B00DF551F /* DrawingViewController.swift */,
+				5FA203B220E6F67900DF551F /* DrawingView.swift */,
+			);
+			path = DrawingView;
+			sourceTree = "<group>";
+		};
 		5F6429B120E2D74200C677F9 = {
 			isa = PBXGroup;
 			children = (
@@ -105,9 +130,9 @@
 		5F6429BC20E2D74200C677F9 /* PIXELink */ = {
 			isa = PBXGroup;
 			children = (
-				5FA203B820E6FD4B00DF551F /* DrawingViewController.swift */,
-				5FA203B220E6F67900DF551F /* DrawingView.swift */,
 				5FA203B620E6F78400DF551F /* Extensions.swift */,
+				5F2DF75820EA8F9C00B4CB01 /* DrawingView */,
+				5F2DF75720EA8F8600B4CB01 /* PhotosCollectionView */,
 				5FA203B420E6F73600DF551F /* Other */,
 				5F77609020E3360B00329627 /* CoreData */,
 				5F6429C720E2D74400C677F9 /* Assets.xcassets */,
@@ -287,7 +312,10 @@
 				5F6429C620E2D74200C677F9 /* PIXELink.xcdatamodeld in Sources */,
 				5FA203B720E6F78400DF551F /* Extensions.swift in Sources */,
 				5FA203B920E6FD4B00DF551F /* DrawingViewController.swift in Sources */,
+				5F1EDDE520EAAEBD0012CF0E /* DataAsset.swift in Sources */,
 				5F77609A20E33B0400329627 /* PersistenceService.swift in Sources */,
+				5F2DF75620EA8F7B00B4CB01 /* PhotoCell.swift in Sources */,
+				5F2DF75420EA86A600B4CB01 /* PhotosCollectionViewController.swift in Sources */,
 				5F6429BE20E2D74200C677F9 /* AppDelegate.swift in Sources */,
 				5FA203B120E6DDA200DF551F /* Photo+CoreDataProperties.swift in Sources */,
 			);
