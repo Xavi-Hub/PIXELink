@@ -9,6 +9,14 @@
 import UIKit
 import UIKit.UIGestureRecognizerSubclass
 
+class NoTouchView: UIView {
+    
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        return false
+    }
+    
+}
+
 class WidthGestureRecognizer: UIPinchGestureRecognizer {
     
     var pinchContent: PinchContentDelegate!

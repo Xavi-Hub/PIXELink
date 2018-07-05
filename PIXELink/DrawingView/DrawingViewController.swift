@@ -23,6 +23,7 @@ class DrawingViewController: UIViewController {
         dv.layer.borderColor = UIColor(hue: 0, saturation: 1, lightness: 0.5).cgColor
         return dv
     }()
+    var isProcessingPhotos = false
     
     var blackWhiteGradientMask: UIImageView = {
         let view = UIImageView()
@@ -59,8 +60,6 @@ class DrawingViewController: UIViewController {
         super.viewDidLoad()
         
         setupViews()
-
-        grabPhotos()
         
         hueRecognizer.addTarget(self, action: #selector(handleSliderUpdate(sender:)))
         grayRecognizer.addTarget(self, action: #selector(handleGrayUpdate(sender:)))
@@ -70,7 +69,7 @@ class DrawingViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-    
+        
     func setupViews() {
         navigationController?.navigationBar.isTranslucent = false
         navigationController?.navigationBar.tintColor = UIColor.white
@@ -131,12 +130,12 @@ class DrawingViewController: UIViewController {
         portraitConstraints.append(blackWhiteImageView.centerYAnchor.constraint(equalTo: containerView2.centerYAnchor))
         portraitConstraints.append(blackWhiteImageView.widthAnchor.constraint(equalTo: containerView2.widthAnchor, constant: -50))
         portraitConstraints.append(blackWhiteImageView.heightAnchor.constraint(equalTo: containerView2.heightAnchor, multiplier: 0.9))
-
+        
         
         landscapeConstraints.append(drawingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5))
-        landscapeConstraints.append(drawingView.widthAnchor.constraint(equalTo: drawingView.heightAnchor, constant: -10))
         landscapeConstraints.append(drawingView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 5))
         landscapeConstraints.append(drawingView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -5))
+        landscapeConstraints.append(drawingView.widthAnchor.constraint(equalTo: drawingView.heightAnchor))
 
         landscapeConstraints.append(colorStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor))
         landscapeConstraints.append(colorStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor))
@@ -153,22 +152,34 @@ class DrawingViewController: UIViewController {
         landscapeConstraints.append(blackWhiteImageView.widthAnchor.constraint(equalTo: containerView2.widthAnchor, multiplier: 0.9))
         landscapeConstraints.append(blackWhiteImageView.heightAnchor.constraint(equalTo: containerView2.heightAnchor, multiplier: 0.9))
         
+        
         updateConstraints()
         
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        DispatchQueue.main.async {
-            self.updateConstraints()
+        // Before the rotation begins
+        for constraint in self.landscapeConstraints {
+            constraint.isActive = false
+        }
+        for constraint in self.portraitConstraints {
+            constraint.isActive = false
+        }
+
+        coordinator.animate(alongsideTransition: { (context) in
+            DispatchQueue.main.async {
+                self.updateConstraints()
+            }
+        }) { (context) in
+            // After the rotation is finished
         }
     }
     
+    
+    
     func updateConstraints() {
         if UIDevice.current.orientation.isPortrait {
-            hueImageView.image = UIImage(named: "hue")
-            blackWhiteImageView.image = UIImage(named: "BlackWhite")
-            blackWhiteGradientMask.image = UIImage(named: "BlackWhiteGradient")
             for constraint in self.landscapeConstraints {
                 constraint.isActive = false
             }
@@ -177,9 +188,6 @@ class DrawingViewController: UIViewController {
             }
         }
         if UIDevice.current.orientation.isLandscape {
-//            hueImageView.image = UIImage(named: "hue upright")
-//            blackWhiteImageView.image = UIImage(named: "BlackWhiteUpright")
-//            blackWhiteGradientMask.image = UIImage(named: "BlackWhiteGradientUpright")
             for constraint in self.portraitConstraints {
                 constraint.isActive = false
             }
@@ -238,13 +246,14 @@ class DrawingViewController: UIViewController {
         }
     }
     
-    func updateBackgroundGray(percent: CGFloat) {
+    @objc func updateBackgroundGray(percent: CGFloat) {
         let newGray = UIColor(white: percent, alpha: 1)
         drawingView.changeCurrentColor(newColor: newGray)
     }
     
     
     func grabPhotos() {
+        isProcessingPhotos = true
         DispatchQueue.global(qos: .background).async {[unowned self] in
             
             let imgManager=PHImageManager.default()
@@ -262,11 +271,14 @@ class DrawingViewController: UIViewController {
             let dataFetchSortDescriptor = NSSortDescriptor(key: "localIdentifier", ascending: true)
             dataFetchRequest.sortDescriptors = [dataFetchSortDescriptor]
             do {
+                // Fetching 32x32 data stored for photos
                 let dataFetchResult = try PersistenceService.context.fetch(dataFetchRequest)
                 self.dataArray = dataFetchResult
             } catch let error {
                 print(error)
             }
+            
+            // Checking for newly added photos and processing them
             var identifiers = [String]()
             for photo in self.dataArray {
                 identifiers.append(photo.localIdentifier!)
@@ -286,6 +298,7 @@ class DrawingViewController: UIViewController {
                 print("No photos found.")
             }
         }
+        isProcessingPhotos = false
     }
     
     func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {

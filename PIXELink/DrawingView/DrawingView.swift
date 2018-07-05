@@ -28,6 +28,12 @@ class DrawingView: UIView, PinchContentDelegate {
     var touchPoint: CGPoint!
     var currentTouch: UITouch?
     var addedLayers: [[CAShapeLayer]] = [[]]
+    var transparencyView: UIImageView = {
+        let tv = UIImageView(image: UIImage(named: "TransparencyCheckers"))
+        tv.contentMode = .scaleAspectFit
+        return tv
+    }()
+    var foregroundView = NoTouchView()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -36,6 +42,30 @@ class DrawingView: UIView, PinchContentDelegate {
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func setupViews() {
+        layer.cornerRadius = 25
+        layer.masksToBounds = true
+        backgroundColor = UIColor(red: 250/255, green: 250/255, blue: 250/255, alpha: 1)
+        foregroundView.backgroundColor = UIColor.clear
+        isMultipleTouchEnabled = true
+        
+        addSubview(transparencyView)
+        addSubview(foregroundView)
+        transparencyView.translatesAutoresizingMaskIntoConstraints = false
+        foregroundView.translatesAutoresizingMaskIntoConstraints = false
+
+        transparencyView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        transparencyView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+        transparencyView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+        transparencyView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+
+        foregroundView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        foregroundView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+        foregroundView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+        foregroundView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -57,7 +87,6 @@ class DrawingView: UIView, PinchContentDelegate {
             if let first = touches.first {
                 guard first == currentTouch else {return}
                 touchPoint = first.location(in: self)
-                
                 path = UIBezierPath()
                 path.move(to: startingPoint)
                 path.addLine(to: touchPoint)
@@ -73,9 +102,9 @@ class DrawingView: UIView, PinchContentDelegate {
     }
     
     func onGestureEnd() {
-        if let contains = layer.sublayers?.contains(shapeLayer1) {
+        if let contains = foregroundView.layer.sublayers?.contains(shapeLayer1) {
             if contains {
-                layer.sublayers?.remove(at: layer.sublayers!.index(of: shapeLayer1)!)
+                foregroundView.layer.sublayers?.remove(at: foregroundView.layer.sublayers!.index(of: shapeLayer1)!)
             }
         }
         setNeedsDisplay()
@@ -91,9 +120,9 @@ class DrawingView: UIView, PinchContentDelegate {
     let shapeLayer1 = CAShapeLayer()
     
     func showWidthCircle(width: CGFloat) {
-        if let contains = layer.sublayers?.contains(shapeLayer1) {
+        if let contains = foregroundView.layer.sublayers?.contains(shapeLayer1) {
             if contains {
-                layer.sublayers?.remove(at: layer.sublayers!.index(of: shapeLayer1)!)
+                foregroundView.layer.sublayers?.remove(at: foregroundView.layer.sublayers!.index(of: shapeLayer1)!)
             }
         }
         shapeLayer1.fillColor = currentColor
@@ -101,20 +130,11 @@ class DrawingView: UIView, PinchContentDelegate {
         shapeLayer1.path = circlePath.cgPath
         shapeLayer1.strokeColor = UIColor.black.cgColor
         shapeLayer1.lineWidth = 1.5
-        layer.addSublayer(shapeLayer1)
+        foregroundView.layer.addSublayer(shapeLayer1)
         setNeedsDisplay()
         
     }
 
-    
-    
-    func setupViews() {
-        layer.cornerRadius = 25
-        layer.masksToBounds = true
-        backgroundColor = UIColor(red: 250/255, green: 250/255, blue: 250/255, alpha: 1)
-        isMultipleTouchEnabled = true
-        
-    }
     
     func changeCurrentColor(newColor: UIColor) {
         currentColor = newColor.cgColor
@@ -123,41 +143,48 @@ class DrawingView: UIView, PinchContentDelegate {
     
     func undo() {
         if let lastGroup = addedLayers.last {
-            for layer in lastGroup {
-                layer.removeFromSuperlayer()
-                setNeedsDisplay()
+            for aLayer in lastGroup {
+                if aLayer.superlayer != nil {
+                    aLayer.removeFromSuperlayer()
+                }
             }
+            setNeedsDisplay()
             let _ = addedLayers.popLast()
         }
     }
     
     func clear() {
         for layerGroup in addedLayers {
-            for layer in layerGroup {
-                layer.removeFromSuperlayer()
+            for aLayer in layerGroup {
+                if aLayer.superlayer != nil {
+                    aLayer.removeFromSuperlayer()
+                }
             }
         }
+        addedLayers = [[]]
         setNeedsDisplay()
     }
     
     func drawShapeLayer() {
         let shapeLayer = CAShapeLayer()
+        shapeLayer.frame = bounds
         shapeLayer.path = path.cgPath
         shapeLayer.lineCap = kCALineCapRound
         shapeLayer.strokeColor = currentColor
         shapeLayer.lineWidth = currentWidth < minWidth ? minWidth : currentWidth
         shapeLayer.fillColor = UIColor.clear.cgColor
-        layer.addSublayer(shapeLayer)
+        foregroundView.layer.addSublayer(shapeLayer)
         addedLayers[addedLayers.count-1].append(shapeLayer)
         setNeedsDisplay()
     }
     
-    
     func saveImage() -> UIImage {
+        transparencyView.isHidden = true
         let renderer = UIGraphicsImageRenderer(bounds: CGRect(x: 15, y: 15, width: frame.width-30, height: frame.height-30))
         let image = renderer.image { (context) in
             return layer.render(in: context.cgContext)
         }
+        transparencyView.isHidden = false
         return image
     }
     
