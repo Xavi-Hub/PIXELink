@@ -38,6 +38,8 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
 
         collectionView!.register(PhotoCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         
+        collectionView?.backgroundColor = UIColor(white: 0.3, alpha: 1)
+        
         setupViews()
         
         grabPhotos()
@@ -121,6 +123,9 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
         let rawDrawnData = drawnPhoto.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
         let drawnPixels = UnsafeBufferPointer<RGBAPixel>(start: rawDrawnData, count: 32 * 32)
         for photo in dataArray {
+            if photo.photoData == nil {
+                continue
+            }
             let rawPhotoData = photo.photoData?.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
             let photoPixels = UnsafeBufferPointer<RGBAPixel>(start: rawPhotoData, count: 32 * 32)
             var photoDifference = 0.0
@@ -140,6 +145,12 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
             let currentAssetIndex = assets.index(where: { (asset) -> Bool in
                 return asset.asset.localIdentifier == photo.localIdentifier
             })
+            if currentAssetIndex == nil {
+                dataArray.remove(at: dataArray.index(of: photo)!)
+                PersistenceService.context.delete(photo)
+                PersistenceService.saveContext()
+                continue
+            }
             let currentAsset = assets[currentAssetIndex!]
             currentAsset.photoDifference = processedPixels == 0 ? 1 : photoDifference / (Double (processedPixels)) / 100
         }
@@ -164,7 +175,7 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
         imgManager.requestImage(for: assets[indexPath.row].asset, targetSize: CGSize(width:200, height: 200),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: { (image, error) in
             cell.photo = image
         })
-        cell.similarity = 1-assets[indexPath.row].photoDifference!
+        cell.similarity = 1-(assets[indexPath.row].photoDifference ?? 1)
         cell.setupViews()
         return cell
     }

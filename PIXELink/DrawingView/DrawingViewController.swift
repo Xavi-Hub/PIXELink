@@ -213,9 +213,27 @@ class DrawingViewController: UIViewController {
     }
     
     @objc func search() {
-        let photo = getDrawnPhoto(sender: nil)
-        let photosCollectionViewController = PhotosCollectionViewController(photo: photo, dataArray: dataArray)
-        navigationController?.pushViewController(photosCollectionViewController, animated: true)
+        
+        if PHPhotoLibrary.authorizationStatus() == .denied {
+            let alert = UIAlertController(title: "Photo Library Access", message: "This app requires access to your photos.\n\nTo grant access, open the Settings app and navigate to Privacy > Photos > PIXELink and check \"Read and Write\"", preferredStyle: .alert)
+            
+            alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+            self.present(alert, animated: true)
+        } else if isProcessingPhotos {
+            let alert = UIAlertController(title: "Processing Photos...", message: "Some of your photos are undergoing initial processing. This only occurs when you have new photos to be processed.", preferredStyle: .alert)
+            
+            alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action) in
+                let photo = self.getDrawnPhoto(sender: nil)
+                let photosCollectionViewController = PhotosCollectionViewController(photo: photo, dataArray: self.dataArray)
+                self.navigationController?.pushViewController(photosCollectionViewController, animated: true)
+            }))
+            self.present(alert, animated: true)
+            
+        } else {
+            let photo = getDrawnPhoto(sender: nil)
+            let photosCollectionViewController = PhotosCollectionViewController(photo: photo, dataArray: dataArray)
+            navigationController?.pushViewController(photosCollectionViewController, animated: true)
+        }
     }
     
     @objc func handleSliderUpdate(sender: Any?) {
@@ -254,6 +272,16 @@ class DrawingViewController: UIViewController {
     
     func grabPhotos() {
         isProcessingPhotos = true
+        
+        if PHPhotoLibrary.authorizationStatus() == .notDetermined {
+            PHPhotoLibrary.requestAuthorization { (status) in
+                if status == .denied {
+                    return
+                }
+            }
+        }
+        
+        print("Processing photos...")
         DispatchQueue.global(qos: .background).async {[unowned self] in
             
             let imgManager=PHImageManager.default()
@@ -278,16 +306,51 @@ class DrawingViewController: UIViewController {
                 print(error)
             }
             
-            // Checking for newly added photos and processing them
-            var identifiers = [String]()
+            // Making sure each already-made Photo object has data and an identifier attached to it.
+            // If not, removing it from dataArray to be re-processed below.
             for photo in self.dataArray {
-                identifiers.append(photo.localIdentifier!)
+                if photo.photoData == nil || photo.localIdentifier == nil {
+                    self.dataArray.remove(at: self.dataArray.index(of: photo)!)
+                }
             }
+            
+            // Setting up arrays to compare number of dataIdentifiers and photoIdentifers
+            var dataIdentifiers = [String]()
+            var photoIdentifiers = [String]()
+            for photo in self.dataArray {
+                dataIdentifiers.append(photo.localIdentifier!)
+            }
+            for i in 0..<photoFetchResult.count {
+                photoIdentifiers.append(photoFetchResult[i].localIdentifier)
+            }
+            
+            // Deleting data from stored data if photo has been deleted from device
+            var toBeDeletedArray = [Int]()
+            if self.dataArray.count != 0 {
+                for i in 0..<self.dataArray.count {
+                    if !photoIdentifiers.contains(self.dataArray[i].localIdentifier ?? "") {
+                        toBeDeletedArray.append(i)
+                    }
+                }
+            }
+            if toBeDeletedArray.count != 0 {
+                for i in 0..<toBeDeletedArray.count {
+                    print("Deleting item: \(i)")
+                    let index = toBeDeletedArray[toBeDeletedArray.count-1-i]
+                    PersistenceService.context.delete(self.dataArray[index])
+                    PersistenceService.saveContext()
+                    self.dataArray.remove(at: index)
+                    dataIdentifiers.remove(at: index)
+                }
+
+            }
+            
+            // Checking for newly added photos and processing them
             if photoFetchResult.count > 0 {
                 for i in 0..<photoFetchResult.count{
                     autoreleasepool {
                         let identifier = photoFetchResult[i].localIdentifier
-                        if !identifiers.contains(identifier) {
+                        if !dataIdentifiers.contains(identifier) {
                             imgManager.requestImage(for: photoFetchResult.object(at: i) as PHAsset, targetSize: CGSize(width:500, height: 500),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: {[unowned self] (image, error) in
                                 self.savePhotoData(newPhoto: image!, localIdentifier: identifier)
                             })
@@ -295,11 +358,15 @@ class DrawingViewController: UIViewController {
                     }
                 }
             } else {
-                print("No photos found.")
+                if PHPhotoLibrary.authorizationStatus() == .authorized {
+                    print("No photos found.")
+                }
             }
+            print("Done processing photos.")
+            self.isProcessingPhotos = false
         }
-        isProcessingPhotos = false
     }
+    
     
     func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
         let rect = CGRect(x: 0, y: 0, width: targetSize.width, height: targetSize.height)

@@ -19,6 +19,16 @@ class DataAsset: Comparable {
     
     
     static func < (lhs: DataAsset, rhs: DataAsset) -> Bool {
+        if lhs.photoDifference == nil {
+            if rhs.photoDifference == nil {
+                return false
+            } else {
+                return false
+            }
+        }
+        if rhs.photoDifference == nil {
+            return true
+        }
         return lhs.photoDifference! < rhs.photoDifference!
     }
     
