@@ -11,12 +11,13 @@ import UIKit
 class PhotoCell: UICollectionViewCell {
     
     var photo: UIImage!
-    var similarity: Double!
+    var similarity: Double = 0
     
     var similarLabel: UILabel = {
         let label = UILabel()
         label.textColor = .white
         label.shadowColor = .black
+        label.font = UIFont(name: AppDelegate.mainFont, size: 16)
         return label
     }()
     
@@ -30,8 +31,8 @@ class PhotoCell: UICollectionViewCell {
     func setupViews() {
         backgroundColor = .clear
         photoView.image = photo
-        similarLabel.text = String(format: "%.2f", similarity)
-        
+        similarLabel.text = String(Int(round(similarity*100))) + "%"
+
         
         addSubview(photoView)
         addSubview(similarLabel)

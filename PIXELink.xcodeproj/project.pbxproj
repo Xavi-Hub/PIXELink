@@ -16,6 +16,8 @@
 		5F6429C820E2D74400C677F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5F6429C720E2D74400C677F9 /* Assets.xcassets */; };
 		5F6429D620E2D74400C677F9 /* PIXELinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6429D520E2D74400C677F9 /* PIXELinkTests.swift */; };
 		5F6429E120E2D74400C677F9 /* PIXELinkUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6429E020E2D74400C677F9 /* PIXELinkUITests.swift */; };
+		5F6D335B20EFBBBE007D5AAF /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F6D335A20EFBBBE007D5AAF /* StoreKit.framework */; };
+		5F6D335D20EFC681007D5AAF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5F6D335C20EFC681007D5AAF /* LaunchScreen.storyboard */; };
 		5F77609A20E33B0400329627 /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F77609920E33B0400329627 /* PersistenceService.swift */; };
 		5FA203B020E6DDA200DF551F /* Photo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA203AE20E6DDA200DF551F /* Photo+CoreDataClass.swift */; };
 		5FA203B120E6DDA200DF551F /* Photo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA203AF20E6DDA200DF551F /* Photo+CoreDataProperties.swift */; };
@@ -57,6 +59,8 @@
 		5F6429DC20E2D74400C677F9 /* PIXELinkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PIXELinkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F6429E020E2D74400C677F9 /* PIXELinkUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIXELinkUITests.swift; sourceTree = "<group>"; };
 		5F6429E220E2D74400C677F9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5F6D335A20EFBBBE007D5AAF /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		5F6D335C20EFC681007D5AAF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		5F77609920E33B0400329627 /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceService.swift; sourceTree = "<group>"; };
 		5FA203AE20E6DDA200DF551F /* Photo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataClass.swift"; sourceTree = "<group>"; };
 		5FA203AF20E6DDA200DF551F /* Photo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -70,6 +74,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5F6D335B20EFBBBE007D5AAF /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +121,7 @@
 				5F6429D420E2D74400C677F9 /* PIXELinkTests */,
 				5F6429DF20E2D74400C677F9 /* PIXELinkUITests */,
 				5F6429BB20E2D74200C677F9 /* Products */,
+				5F6D335920EFBBBE007D5AAF /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -140,6 +146,7 @@
 				5F77609020E3360B00329627 /* CoreData */,
 				5F6429C720E2D74400C677F9 /* Assets.xcassets */,
 				5F6429CC20E2D74400C677F9 /* Info.plist */,
+				5F6D335C20EFC681007D5AAF /* LaunchScreen.storyboard */,
 			);
 			path = PIXELink;
 			sourceTree = "<group>";
@@ -160,6 +167,14 @@
 				5F6429E220E2D74400C677F9 /* Info.plist */,
 			);
 			path = PIXELinkUITests;
+			sourceTree = "<group>";
+		};
+		5F6D335920EFBBBE007D5AAF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5F6D335A20EFBBBE007D5AAF /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		5F77609020E3360B00329627 /* CoreData */ = {
@@ -249,6 +264,11 @@
 				TargetAttributes = {
 					5F6429B920E2D74200C677F9 = {
 						CreatedOnToolsVersion = 9.4.1;
+						SystemCapabilities = {
+							com.apple.InAppPurchase = {
+								enabled = 1;
+							};
+						};
 					};
 					5F6429D020E2D74400C677F9 = {
 						CreatedOnToolsVersion = 9.4.1;
@@ -285,6 +305,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5F6D335D20EFC681007D5AAF /* LaunchScreen.storyboard in Resources */,
 				5F6429C820E2D74400C677F9 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -482,7 +503,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = semicomma.PIXELink;
+				PRODUCT_BUNDLE_IDENTIFIER = com.semicomma.PIXELink;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -500,7 +521,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = semicomma.PIXELink;
+				PRODUCT_BUNDLE_IDENTIFIER = com.semicomma.PIXELink;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

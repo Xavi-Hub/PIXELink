@@ -17,10 +17,16 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
     var dataArray: [Photo]
     var assets: [DataAsset] = []
     let imgManager = PHImageManager.default()
+    var dispatchItem: DispatchWorkItem!
+    let trackLayer = CAShapeLayer()
+    let calculatingLayer = CAShapeLayer()
+    var totalPhotoCount = 0
+    var processedPhotoCount = 0
     
     init(photo: NSData, dataArray: [Photo]) {
         drawnPhoto = photo
         self.dataArray = dataArray
+        self.totalPhotoCount = dataArray.count
         super.init(collectionViewLayout: UICollectionViewLayout())
     }
     
@@ -30,7 +36,7 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+                
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 0
         layout.minimumInteritemSpacing = 0
@@ -38,18 +44,14 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
 
         collectionView!.register(PhotoCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         
-        collectionView?.backgroundColor = UIColor(white: 0.3, alpha: 1)
+        collectionView?.backgroundColor = AppDelegate.alternateColor
+        view.backgroundColor = AppDelegate.alternateColor
         
         setupViews()
-        
         grabPhotos()
-
+        
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
+    
     
     func setupViews() {
         
@@ -62,9 +64,75 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
         
     }
     
+    func toggleCalculatingLayers(hidden: Bool) {
+        
+        if hidden {
+            trackLayer.isHidden = true
+            calculatingLayer.isHidden = true
+        } else {
+            trackLayer.isHidden = false
+            calculatingLayer.isHidden = false
+            
+            trackLayer.frame = collectionView!.frame
+            calculatingLayer.frame = collectionView!.frame
+            
+            let calculatingPath = UIBezierPath(arcCenter: view.center, radius: 100, startAngle: -.pi/2, endAngle: 3 * .pi/2, clockwise: true)
+//            calculatingPath.move(to: CGPoint(x: view.center.x-50, y: view.center.y))
+//            calculatingPath.addLine(to: CGPoint(x: view.center.x+50, y: view.center.y))
+
+            trackLayer.path = calculatingPath.cgPath
+            calculatingLayer.path = calculatingPath.cgPath
+            
+            trackLayer.lineWidth = 10
+            trackLayer.lineCap = kCALineCapRound
+            trackLayer.strokeColor = UIColor.lightGray.cgColor
+            trackLayer.fillColor = UIColor.clear.cgColor
+            
+            calculatingLayer.lineWidth = 10
+            calculatingLayer.lineCap = kCALineCapRound
+            calculatingLayer.strokeColor = AppDelegate.mainColor.cgColor
+            calculatingLayer.fillColor = UIColor.clear.cgColor
+            
+            calculatingLayer.strokeEnd = 0
+            
+            if trackLayer.superlayer == nil {
+                collectionView?.layer.addSublayer(trackLayer)
+            }
+            if calculatingLayer.superlayer == nil {
+                collectionView?.layer.addSublayer(calculatingLayer)
+            }
+            
+        }
+        
+    }
+    
+    func updateCalculatingLayers() {
+        
+        let animation = CABasicAnimation(keyPath: "strokeEnd")
+        
+        animation.toValue = Double(processedPhotoCount)/Double(totalPhotoCount)
+        animation.duration = 0.5
+        
+        animation.fillMode = kCAFillModeForwards
+        animation.isRemovedOnCompletion = false
+        
+        calculatingLayer.add(animation, forKey: nil)
+        
+    }
+    
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         collectionView?.collectionViewLayout.invalidateLayout()
+    }
+    
+    override func willMove(toParentViewController parent: UIViewController?) {
+        super.willMove(toParentViewController: parent)
+        
+        if parent == nil {
+            DispatchQueue.global(qos: .background).async {
+                self.dispatchItem.cancel()
+            }
+        }
     }
     
     // Grabs photo assets and puts them in the DataAsset array, then reloads collectionView.
@@ -82,11 +150,7 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
                 // dataArray MUST contain all photos, or else a DataAsset's photoDifference will be nil
                 self.assets.append(DataAsset(asset: asset))
             }
-            DispatchQueue.main.async {
-                self.processDifferences()
-                self.assets.sort()
-                self.collectionView?.reloadData()
-            }
+            self.processDifferences()
         }
     }
 
@@ -120,40 +184,61 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
 //    }
     
     func processDifferences() {
-        let rawDrawnData = drawnPhoto.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
-        let drawnPixels = UnsafeBufferPointer<RGBAPixel>(start: rawDrawnData, count: 32 * 32)
-        for photo in dataArray {
-            if photo.photoData == nil {
-                continue
+        dispatchItem = DispatchWorkItem {
+            DispatchQueue.main.async {
+                self.toggleCalculatingLayers(hidden: false)
             }
-            let rawPhotoData = photo.photoData?.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
-            let photoPixels = UnsafeBufferPointer<RGBAPixel>(start: rawPhotoData, count: 32 * 32)
-            var photoDifference = 0.0
-            var processedPixels = 0
-            for i in 0..<photoPixels.count {
-                let currentDrawnPixel = drawnPixels[i]
-                let currentPhotoPixel = photoPixels[i]
-                if currentDrawnPixel.red == 250 && currentDrawnPixel.green == 250 && currentDrawnPixel.blue == 250 {
-                    continue
+            let rawDrawnData = self.drawnPhoto.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
+            let drawnPixels = UnsafeBufferPointer<RGBAPixel>(start: rawDrawnData, count: 32 * 32)
+            for photo in self.dataArray {
+                if !self.dispatchItem.isCancelled {
+                    if photo.photoData == nil {
+                        continue
+                    }
+                    let rawPhotoData = photo.photoData?.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
+                    let photoPixels = UnsafeBufferPointer<RGBAPixel>(start: rawPhotoData, count: 32 * 32)
+                    var photoDifference = 0.0
+                    var processedPixels = 0
+                    for i in 0..<photoPixels.count {
+                        let currentDrawnPixel = drawnPixels[i]
+                        let currentPhotoPixel = photoPixels[i]
+                        if currentDrawnPixel.red == 250 && currentDrawnPixel.green == 250 && currentDrawnPixel.blue == 250 {
+                            continue
+                        }
+                        let drawnColor = (Int(currentDrawnPixel.red), Int(currentDrawnPixel.green), Int(currentDrawnPixel.blue))
+                        let photoColor = (Int(currentPhotoPixel.red), Int(currentPhotoPixel.green), Int(currentPhotoPixel.blue))
+                        let deltaE = ColorHelper.deltaE(color1: drawnColor, color2: photoColor)
+                        photoDifference += deltaE
+                        processedPixels += 1
+                    }
+                    let currentAssetIndex = self.assets.index(where: { (asset) -> Bool in
+                        return asset.asset.localIdentifier == photo.localIdentifier
+                    })
+                    if currentAssetIndex == nil {
+                        self.dataArray.remove(at: self.dataArray.index(of: photo)!)
+                        PersistenceService.context.delete(photo)
+                        PersistenceService.saveContext()
+                        continue
+                    }
+                    let currentAsset = self.assets[currentAssetIndex!]
+                    currentAsset.photoDifference = processedPixels == 0 ? 1 : photoDifference / (Double (processedPixels)) / 100
+                    self.processedPhotoCount += 1
+                    DispatchQueue.main.async {
+                        self.updateCalculatingLayers()
+                    }
+                } else {
+                    break
                 }
-                let drawnColor = (Int(currentDrawnPixel.red), Int(currentDrawnPixel.green), Int(currentDrawnPixel.blue))
-                let photoColor = (Int(currentPhotoPixel.red), Int(currentPhotoPixel.green), Int(currentPhotoPixel.blue))
-                let deltaE = ColorHelper.deltaE(color1: drawnColor, color2: photoColor)
-                photoDifference += deltaE
-                processedPixels += 1
             }
-            let currentAssetIndex = assets.index(where: { (asset) -> Bool in
-                return asset.asset.localIdentifier == photo.localIdentifier
-            })
-            if currentAssetIndex == nil {
-                dataArray.remove(at: dataArray.index(of: photo)!)
-                PersistenceService.context.delete(photo)
-                PersistenceService.saveContext()
-                continue
+            self.assets.sort()
+            DispatchQueue.main.async {
+                self.toggleCalculatingLayers(hidden: true)
+                self.collectionView?.reloadData()
             }
-            let currentAsset = assets[currentAssetIndex!]
-            currentAsset.photoDifference = processedPixels == 0 ? 1 : photoDifference / (Double (processedPixels)) / 100
         }
+        
+        DispatchQueue.global(qos: .background).async(execute: dispatchItem)
+        
     }
     
     
@@ -172,10 +257,12 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
         let photoRequestOptions=PHImageRequestOptions()
         photoRequestOptions.isSynchronous=true
         photoRequestOptions.deliveryMode = .opportunistic
-        imgManager.requestImage(for: assets[indexPath.row].asset, targetSize: CGSize(width:200, height: 200),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: { (image, error) in
-            cell.photo = image
-        })
-        cell.similarity = 1-(assets[indexPath.row].photoDifference ?? 1)
+        if !(assets.isEmpty) {
+            imgManager.requestImage(for: assets[indexPath.row].asset, targetSize: CGSize(width:200, height: 200),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: { (image, error) in
+                cell.photo = image
+            })
+            cell.similarity = 1-(assets[indexPath.row].photoDifference ?? 1)
+        }
         cell.setupViews()
         return cell
     }

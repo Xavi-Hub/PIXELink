@@ -13,12 +13,18 @@ import CoreData
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    static var mainColor = UIColor(red: 95/255, green: 100/255, blue: 127/255, alpha: 1)
+    static var alternateColor = UIColor(red: 47/255, green: 50/255, blue: 64/255, alpha: 1)
+    static var mainFont = "TamilSangamMN"
 
     let drawingViewController = DrawingViewController()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        
+        let attributes = [NSAttributedStringKey.font: UIFont(name: AppDelegate.mainFont, size: 16)!]
+        UIBarButtonItem.appearance().setTitleTextAttributes(attributes, for: .normal)
+        UIBarButtonItem.appearance().setTitleTextAttributes(attributes, for: .highlighted)
+
         window = UIWindow(frame: UIScreen.main.bounds)
         window!.rootViewController = UINavigationController(rootViewController: drawingViewController)
         window!.makeKeyAndVisible()

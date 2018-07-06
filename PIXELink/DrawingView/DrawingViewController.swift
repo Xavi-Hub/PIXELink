@@ -24,7 +24,20 @@ class DrawingViewController: UIViewController {
         return dv
     }()
     var isProcessingPhotos = false
+    var currentProcessingPhotoIndex = 0
+    var numberOfPhotosToBeProcessed = 0
     
+    
+    let processingLabel: UILabel = {
+        let label = UILabel()
+        label.text = ""
+        label.font = UIFont(name: AppDelegate.mainFont, size: 16)
+        label.textColor = UIColor(white: 0.6, alpha: 0.6)
+        return label
+    }()
+    
+    let processingItem = UIBarButtonItem()
+
     var blackWhiteGradientMask: UIImageView = {
         let view = UIImageView()
         view.backgroundColor = UIColor.clear
@@ -71,12 +84,38 @@ class DrawingViewController: UIViewController {
     }
         
     func setupViews() {
+        
+        setupNavController()
+        
+        layoutAndConstrainViews()
+        
+    }
+    
+    func setupNavController() {
         navigationController?.navigationBar.isTranslucent = false
         navigationController?.navigationBar.tintColor = UIColor.white
-        navigationController?.navigationBar.barTintColor = UIColor(white: 0.2, alpha: 1)
-        view.backgroundColor = UIColor(white: 0.3, alpha: 1)
-        navigationItem.rightBarButtonItems = [UIBarButtonItem(barButtonSystemItem: .undo, target: self, action: #selector(handleUndo(sender:))), UIBarButtonItem(title: "Search", style: .plain, target: self, action: #selector(search))]
+        navigationController?.navigationBar.barTintColor = AppDelegate.mainColor
+        view.backgroundColor = AppDelegate.alternateColor
+        processingItem.customView = processingLabel
+        updateProcessingLabel()
+        processingLabel.sizeToFit()
+        processingItem.width = 50
+        navigationItem.rightBarButtonItems = [UIBarButtonItem(title: "Search", style: .plain, target: self, action: #selector(search)), UIBarButtonItem(barButtonSystemItem: .undo, target: self, action: #selector(handleUndo(sender:))), processingItem]
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Clear", style: .plain, target: self, action: #selector(handleClear(sender:)))
+    }
+    
+    func updateProcessingLabel() {
+        let barLabel = processingItem.customView as! UILabel
+        if numberOfPhotosToBeProcessed == 0 {
+            barLabel.text = ""
+        } else if currentProcessingPhotoIndex > numberOfPhotosToBeProcessed {
+            barLabel.text = ""
+        } else {
+            barLabel.text = "\(currentProcessingPhotoIndex)/\(numberOfPhotosToBeProcessed)"
+        }
+    }
+    
+    func layoutAndConstrainViews() {
         
         let containerView1 = UIView()
         let containerView2 = UIView()
@@ -88,7 +127,7 @@ class DrawingViewController: UIViewController {
         view.addSubview(drawingView)
         containerView1.addSubview(hueImageView)
         containerView2.addSubview(blackWhiteImageView)
-        blackWhiteGradientMask.transform = blackWhiteGradientMask.transform.rotated(by: .pi/2)
+        blackWhiteGradientMask.transform = blackWhiteGradientMask.transform.rotated(by: -.pi/2)
         hueImageView.addSubview(blackWhiteGradientMask)
         
         hueImageView.addGestureRecognizer(hueRecognizer)
@@ -98,7 +137,7 @@ class DrawingViewController: UIViewController {
         
         blackWhiteImageView.addGestureRecognizer(grayRecognizer)
         blackWhiteImageView.isUserInteractionEnabled = true
-
+        
         colorStackView.translatesAutoresizingMaskIntoConstraints = false
         drawingView.translatesAutoresizingMaskIntoConstraints = false
         hueImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -107,7 +146,7 @@ class DrawingViewController: UIViewController {
         
         blackWhiteGradientMask.centerXAnchor.constraint(equalTo: hueImageView.centerXAnchor).isActive = true
         blackWhiteGradientMask.centerYAnchor.constraint(equalTo: hueImageView.centerYAnchor).isActive = true
-        blackWhiteGradientMask.widthAnchor.constraint(equalTo: hueImageView.heightAnchor).isActive = true
+        blackWhiteGradientMask.widthAnchor.constraint(equalTo: hueImageView.heightAnchor, constant: 1).isActive = true
         blackWhiteGradientMask.heightAnchor.constraint(equalTo: hueImageView.widthAnchor).isActive = true
         
         portraitConstraints.append(drawingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20))
@@ -119,13 +158,13 @@ class DrawingViewController: UIViewController {
         portraitConstraints.append(colorStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor))
         portraitConstraints.append(colorStackView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor))
         portraitConstraints.append(colorStackView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor))
-
+        
         portraitConstraints.append(hueImageView.centerXAnchor.constraint(equalTo: containerView1.centerXAnchor))
         portraitConstraints.append(hueImageView.centerYAnchor.constraint(equalTo: containerView1.centerYAnchor))
         portraitConstraints.append(hueImageView.widthAnchor.constraint(equalTo: containerView1.widthAnchor, constant: -50))
         portraitConstraints.append(hueImageView.heightAnchor.constraint(equalTo: containerView1.heightAnchor, multiplier: 0.9))
-
-
+        
+        
         portraitConstraints.append(blackWhiteImageView.centerXAnchor.constraint(equalTo: containerView2.centerXAnchor))
         portraitConstraints.append(blackWhiteImageView.centerYAnchor.constraint(equalTo: containerView2.centerYAnchor))
         portraitConstraints.append(blackWhiteImageView.widthAnchor.constraint(equalTo: containerView2.widthAnchor, constant: -50))
@@ -136,12 +175,12 @@ class DrawingViewController: UIViewController {
         landscapeConstraints.append(drawingView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 5))
         landscapeConstraints.append(drawingView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -5))
         landscapeConstraints.append(drawingView.widthAnchor.constraint(equalTo: drawingView.heightAnchor))
-
+        
         landscapeConstraints.append(colorStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor))
         landscapeConstraints.append(colorStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor))
         landscapeConstraints.append(colorStackView.leftAnchor.constraint(equalTo: drawingView.rightAnchor))
         landscapeConstraints.append(colorStackView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor))
-
+        
         landscapeConstraints.append(hueImageView.centerXAnchor.constraint(equalTo: containerView1.centerXAnchor))
         landscapeConstraints.append(hueImageView.centerYAnchor.constraint(equalTo: containerView1.centerYAnchor))
         landscapeConstraints.append(hueImageView.widthAnchor.constraint(equalTo: containerView1.widthAnchor, multiplier: 0.9))
@@ -154,7 +193,6 @@ class DrawingViewController: UIViewController {
         
         
         updateConstraints()
-        
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -220,7 +258,7 @@ class DrawingViewController: UIViewController {
             alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
             self.present(alert, animated: true)
         } else if isProcessingPhotos {
-            let alert = UIAlertController(title: "Processing Photos...", message: "Some of your photos are undergoing initial processing. This only occurs when you have new photos to be processed.", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Processing Photos...", message: "Some of your photos could still be undergoing initial processing. This only occurs when you have new photos to be processed.", preferredStyle: .alert)
             
             alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action) in
                 let photo = self.getDrawnPhoto(sender: nil)
@@ -245,7 +283,7 @@ class DrawingViewController: UIViewController {
             var yPercent = recognizer.location(ofTouch: recognizer.numberOfTouches-1, in: hueImageView).y/hueImageView.frame.height
             if yPercent < 0 {yPercent = 0}
             if yPercent > 1 {yPercent = 1}
-            updateBackgroundColor(xPercent: xPercent, yPercent: yPercent)
+            updateBackgroundColor(xPercent: xPercent, yPercent: 1-yPercent)
         }
     }
     
@@ -345,19 +383,46 @@ class DrawingViewController: UIViewController {
 
             }
             
-            // Checking for newly added photos and processing them
+            var newlyAddedAssets: [PHAsset] = []
             if photoFetchResult.count > 0 {
                 for i in 0..<photoFetchResult.count{
+                    // Checking for newly added photos and adding them to an array
+                    let identifer = photoFetchResult[i].localIdentifier
+                    if !dataIdentifiers.contains(identifer) {
+                        newlyAddedAssets.append(photoFetchResult[i])
+                    }
+                }
+                self.numberOfPhotosToBeProcessed = newlyAddedAssets.count
+                self.currentProcessingPhotoIndex = 1
+                // Processing newly added photos from newlyAddedIdentifiersArray
+                self.currentProcessingPhotoIndex = 1
+                for asset in newlyAddedAssets {
                     autoreleasepool {
-                        let identifier = photoFetchResult[i].localIdentifier
-                        if !dataIdentifiers.contains(identifier) {
-                            imgManager.requestImage(for: photoFetchResult.object(at: i) as PHAsset, targetSize: CGSize(width:500, height: 500),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: {[unowned self] (image, error) in
-                                self.savePhotoData(newPhoto: image!, localIdentifier: identifier)
-                            })
-                        }
+                        print("Processing photo \(self.currentProcessingPhotoIndex)/\(self.numberOfPhotosToBeProcessed).")
+                        imgManager.requestImage(for: asset, targetSize: CGSize(width:500, height: 500),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: {[unowned self] (image, error) in
+                            self.savePhotoData(newPhoto: image!, localIdentifier: asset.localIdentifier)
+                            self.currentProcessingPhotoIndex += 1
+                            DispatchQueue.main.async {
+                                self.setupNavController()
+                            }
+                        })
                     }
                 }
             } else {
+
+            
+//            if photoFetchResult.count > 0 {
+//                for i in 0..<photoFetchResult.count{
+//                    autoreleasepool {
+//                        let identifier = photoFetchResult[i].localIdentifier
+//                        if !dataIdentifiers.contains(identifier) {
+//                            imgManager.requestImage(for: photoFetchResult.object(at: i) as PHAsset, targetSize: CGSize(width:500, height: 500),contentMode: .aspectFill, options: photoRequestOptions, resultHandler: {[unowned self] (image, error) in
+//                                self.savePhotoData(newPhoto: image!, localIdentifier: identifier)
+//                            })
+//                        }
+//                    }
+//                }
+//            } else {
                 if PHPhotoLibrary.authorizationStatus() == .authorized {
                     print("No photos found.")
                 }
@@ -380,22 +445,6 @@ class DrawingViewController: UIViewController {
     // Resizes photo and returns a data object of RBGA Pixels
     func getPhotoData(image: UIImage) -> NSData {
         
-//        let resizedPhoto = resizeImage(image: image, targetSize: CGSize(width: 32, height: 32))
-//        let height = Int(resizedPhoto.size.height)
-//        let width = Int(resizedPhoto.size.width)
-//
-//        let bitsPerComponent = Int(8)
-//        let bytesPerRow = 4 * width
-//        let colorSpace = CGColorSpaceCreateDeviceRGB()
-//        let rawData = UnsafeMutablePointer<RGBAPixel>.allocate(capacity: (width * height))
-//        let bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue
-//        let CGPointZero = CGPoint(x: 0, y: 0)
-//        let rect = CGRect(origin: CGPointZero, size: resizedPhoto.size)
-//
-//        weak var imageContext = CGContext(data: rawData, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo)
-//
-//        imageContext?.draw(resizedPhoto.cgImage!, in: rect)
-
         let resizedPhoto = resizeImage(image: image, targetSize: CGSize(width: 32, height: 32))
         guard let cgImage = resizedPhoto.cgImage else { return NSData() } // 1
         
@@ -418,8 +467,6 @@ class DrawingViewController: UIViewController {
 //        let newContext = CGContext(data: pixels.baseAddress, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo, releaseCallback: nil, releaseInfo: nil)
 //        addAndSetupImageView(withImage: UIImage(cgImage: (newContext?.makeImage()!)!))
         
-//        let dataObject = NSData(bytes: imageData, length: width * height)
-        
         let dataObject = Data.init(buffer: pixels) as NSData
         
         return dataObject
@@ -437,7 +484,6 @@ class DrawingViewController: UIViewController {
     var newPhotoCount = 0
     
     func savePhotoData(newPhoto: UIImage, localIdentifier: String) {
-        print("Processing new image: \(newPhotoCount)")
         newPhotoCount += 1
         let newData = Photo(context: PersistenceService.context)
         newData.localIdentifier = localIdentifier
