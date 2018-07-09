@@ -45,8 +45,6 @@ class DrawingView: UIView, PinchContentDelegate {
     }
     
     func setupViews() {
-        layer.cornerRadius = 25
-        layer.masksToBounds = true
         backgroundColor = UIColor(red: 250/255, green: 250/255, blue: 250/255, alpha: 1)
         foregroundView.backgroundColor = UIColor.clear
         isMultipleTouchEnabled = true
@@ -138,7 +136,6 @@ class DrawingView: UIView, PinchContentDelegate {
     
     func changeCurrentColor(newColor: UIColor) {
         currentColor = newColor.cgColor
-        layer.borderColor = newColor.cgColor
     }
     
     func undo() {
@@ -180,6 +177,7 @@ class DrawingView: UIView, PinchContentDelegate {
     
     func saveImage() -> UIImage {
         transparencyView.isHidden = true
+        // TODO: - Fix the bounds for this
         let renderer = UIGraphicsImageRenderer(bounds: CGRect(x: 15, y: 15, width: frame.width-30, height: frame.height-30))
         let image = renderer.image { (context) in
             return layer.render(in: context.cgContext)

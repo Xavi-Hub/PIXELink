@@ -91,7 +91,7 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
             calculatingLayer.lineWidth = 10
             calculatingLayer.lineCap = kCALineCapRound
             calculatingLayer.strokeColor = AppDelegate.mainColor.cgColor
-            calculatingLayer.fillColor = UIColor.clear.cgColor
+            calculatingLayer.fillColor = UIColor.clear.cgColor 
             
             calculatingLayer.strokeEnd = 0
             

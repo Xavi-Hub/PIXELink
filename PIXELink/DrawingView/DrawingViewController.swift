@@ -12,17 +12,25 @@ import CoreData
 import Photos
 import CoreGraphics
 
-class DrawingViewController: UIViewController {
+protocol SizeInfoReceiver {
+    func handleSizeUpdate(percent: CGFloat)
+}
+
+protocol ColorInfoReceiver {
+    func handleColorUpdate(percent: CGFloat)
+}
+
+protocol DarknessInfoReceier {
+    func handleDarknessUpdate(percent: CGFloat)
+}
+
+
+class DrawingViewController: UIViewController, ColorInfoReceiver {
 
     var dataArray = [Photo]()
     var portraitConstraints = [NSLayoutConstraint]()
     var landscapeConstraints = [NSLayoutConstraint]()
-    var drawingView: DrawingView = {
-        let dv = DrawingView()
-        dv.layer.borderWidth = 5
-        dv.layer.borderColor = UIColor(hue: 0, saturation: 1, lightness: 0.5).cgColor
-        return dv
-    }()
+    var drawingView = DrawingView()
     var isProcessingPhotos = false
     var currentProcessingPhotoIndex = 0
     var numberOfPhotosToBeProcessed = 0
@@ -118,15 +126,27 @@ class DrawingViewController: UIViewController {
     func layoutAndConstrainViews() {
         
         let containerView1 = UIView()
-        let containerView2 = UIView()
-        let colorStackView = UIStackView(arrangedSubviews: [containerView1, containerView2])
-        colorStackView.axis = .vertical
-        colorStackView.distribution = .fillEqually
+        let containerView1_2 = UIView()
+        let sizeCircle = SizeCircle()
+        let colorCircle = ColorCircle(frame: CGRect.zero)
+        let darknessCircle = DarknessCircle(frame: CGRect.zero)
+        let circlesView = UIView()
+                
+        sizeCircle.backgroundColor = .clear
+        colorCircle.backgroundColor = .clear
+        darknessCircle.backgroundColor = .clear
         
-        view.addSubview(colorStackView)
+        view.addSubview(containerView1)
+        containerView1.addSubview(circlesView)
+        containerView1.addSubview(containerView1_2)
+
         view.addSubview(drawingView)
-        containerView1.addSubview(hueImageView)
-        containerView2.addSubview(blackWhiteImageView)
+        view.addSubview(containerView1)
+        containerView1.addSubview(circlesView)
+        circlesView.addSubview(colorCircle)
+        circlesView.addSubview(sizeCircle)
+        circlesView.addSubview(darknessCircle)
+        containerView1.addSubview(containerView1_2)
         blackWhiteGradientMask.transform = blackWhiteGradientMask.transform.rotated(by: -.pi/2)
         hueImageView.addSubview(blackWhiteGradientMask)
         
@@ -138,58 +158,61 @@ class DrawingViewController: UIViewController {
         blackWhiteImageView.addGestureRecognizer(grayRecognizer)
         blackWhiteImageView.isUserInteractionEnabled = true
         
-        colorStackView.translatesAutoresizingMaskIntoConstraints = false
+        containerView1.translatesAutoresizingMaskIntoConstraints = false
+        circlesView.translatesAutoresizingMaskIntoConstraints = false
+        sizeCircle.translatesAutoresizingMaskIntoConstraints = false
+        colorCircle.translatesAutoresizingMaskIntoConstraints = false
+        darknessCircle.translatesAutoresizingMaskIntoConstraints = false
+        containerView1_2.translatesAutoresizingMaskIntoConstraints = false
         drawingView.translatesAutoresizingMaskIntoConstraints = false
         hueImageView.translatesAutoresizingMaskIntoConstraints = false
         blackWhiteGradientMask.translatesAutoresizingMaskIntoConstraints = false
         blackWhiteImageView.translatesAutoresizingMaskIntoConstraints = false
         
-        blackWhiteGradientMask.centerXAnchor.constraint(equalTo: hueImageView.centerXAnchor).isActive = true
-        blackWhiteGradientMask.centerYAnchor.constraint(equalTo: hueImageView.centerYAnchor).isActive = true
-        blackWhiteGradientMask.widthAnchor.constraint(equalTo: hueImageView.heightAnchor, constant: 1).isActive = true
-        blackWhiteGradientMask.heightAnchor.constraint(equalTo: hueImageView.widthAnchor).isActive = true
-        
-        portraitConstraints.append(drawingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20))
-        portraitConstraints.append(drawingView.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor, constant: -10))
+        portraitConstraints.append(drawingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor))
+        portraitConstraints.append(drawingView.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor))
         portraitConstraints.append(drawingView.centerXAnchor.constraint(equalTo: view.centerXAnchor))
         portraitConstraints.append(drawingView.heightAnchor.constraint(equalTo: drawingView.widthAnchor))
         
-        portraitConstraints.append(colorStackView.topAnchor.constraint(equalTo: drawingView.bottomAnchor))
-        portraitConstraints.append(colorStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor))
-        portraitConstraints.append(colorStackView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor))
-        portraitConstraints.append(colorStackView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor))
+        portraitConstraints.append(containerView1.centerXAnchor.constraint(equalTo: view.centerXAnchor))
+        portraitConstraints.append(containerView1.topAnchor.constraint(equalTo: drawingView.bottomAnchor))
+        portraitConstraints.append(containerView1.widthAnchor.constraint(equalTo: view.widthAnchor))
+        portraitConstraints.append(containerView1.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor))
         
-        portraitConstraints.append(hueImageView.centerXAnchor.constraint(equalTo: containerView1.centerXAnchor))
-        portraitConstraints.append(hueImageView.centerYAnchor.constraint(equalTo: containerView1.centerYAnchor))
-        portraitConstraints.append(hueImageView.widthAnchor.constraint(equalTo: containerView1.widthAnchor, constant: -50))
-        portraitConstraints.append(hueImageView.heightAnchor.constraint(equalTo: containerView1.heightAnchor, multiplier: 0.9))
+        portraitConstraints.append(circlesView.centerXAnchor.constraint(equalTo: containerView1.centerXAnchor))
+        portraitConstraints.append(circlesView.topAnchor.constraint(equalTo: containerView1.topAnchor))
+        portraitConstraints.append(circlesView.widthAnchor.constraint(equalTo: containerView1.widthAnchor))
+        portraitConstraints.append(circlesView.heightAnchor.constraint(equalTo: containerView1.heightAnchor, multiplier: 0.6))
+        
+        portraitConstraints.append(sizeCircle.leftAnchor.constraint(equalTo: circlesView.leftAnchor))
+        portraitConstraints.append(sizeCircle.widthAnchor.constraint(equalTo: circlesView.widthAnchor, multiplier: 1/3))
+        portraitConstraints.append(sizeCircle.topAnchor.constraint(equalTo: circlesView.topAnchor))
+        portraitConstraints.append(sizeCircle.bottomAnchor.constraint(equalTo: circlesView.bottomAnchor))
+        
+        portraitConstraints.append(colorCircle.leftAnchor.constraint(equalTo: sizeCircle.rightAnchor))
+        portraitConstraints.append(colorCircle.widthAnchor.constraint(equalTo: sizeCircle.widthAnchor))
+        portraitConstraints.append(colorCircle.topAnchor.constraint(equalTo: sizeCircle.topAnchor))
+        portraitConstraints.append(colorCircle.bottomAnchor.constraint(equalTo: sizeCircle.bottomAnchor))
+        
+        portraitConstraints.append(darknessCircle.leftAnchor.constraint(equalTo: colorCircle.rightAnchor))
+        portraitConstraints.append(darknessCircle.widthAnchor.constraint(equalTo: colorCircle.widthAnchor))
+        portraitConstraints.append(darknessCircle.topAnchor.constraint(equalTo: sizeCircle.topAnchor))
+        portraitConstraints.append(darknessCircle.bottomAnchor.constraint(equalTo: sizeCircle.bottomAnchor))
+
+        
+        portraitConstraints.append(containerView1_2.centerXAnchor.constraint(equalTo: containerView1.centerXAnchor))
+        portraitConstraints.append(containerView1_2.topAnchor.constraint(equalTo: circlesView.bottomAnchor))
+        portraitConstraints.append(containerView1_2.widthAnchor.constraint(equalTo: containerView1.widthAnchor))
+        portraitConstraints.append(containerView1_2.bottomAnchor.constraint(equalTo: containerView1.bottomAnchor))
+
         
         
-        portraitConstraints.append(blackWhiteImageView.centerXAnchor.constraint(equalTo: containerView2.centerXAnchor))
-        portraitConstraints.append(blackWhiteImageView.centerYAnchor.constraint(equalTo: containerView2.centerYAnchor))
-        portraitConstraints.append(blackWhiteImageView.widthAnchor.constraint(equalTo: containerView2.widthAnchor, constant: -50))
-        portraitConstraints.append(blackWhiteImageView.heightAnchor.constraint(equalTo: containerView2.heightAnchor, multiplier: 0.9))
-        
-        
-        landscapeConstraints.append(drawingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5))
-        landscapeConstraints.append(drawingView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 5))
-        landscapeConstraints.append(drawingView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -5))
+        landscapeConstraints.append(drawingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor))
+        landscapeConstraints.append(drawingView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor))
+        landscapeConstraints.append(drawingView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor))
         landscapeConstraints.append(drawingView.widthAnchor.constraint(equalTo: drawingView.heightAnchor))
         
-        landscapeConstraints.append(colorStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor))
-        landscapeConstraints.append(colorStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor))
-        landscapeConstraints.append(colorStackView.leftAnchor.constraint(equalTo: drawingView.rightAnchor))
-        landscapeConstraints.append(colorStackView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor))
         
-        landscapeConstraints.append(hueImageView.centerXAnchor.constraint(equalTo: containerView1.centerXAnchor))
-        landscapeConstraints.append(hueImageView.centerYAnchor.constraint(equalTo: containerView1.centerYAnchor))
-        landscapeConstraints.append(hueImageView.widthAnchor.constraint(equalTo: containerView1.widthAnchor, multiplier: 0.9))
-        landscapeConstraints.append(hueImageView.heightAnchor.constraint(equalTo: containerView1.heightAnchor, multiplier: 0.9))
-        
-        landscapeConstraints.append(blackWhiteImageView.centerXAnchor.constraint(equalTo: containerView2.centerXAnchor))
-        landscapeConstraints.append(blackWhiteImageView.centerYAnchor.constraint(equalTo: containerView2.centerYAnchor))
-        landscapeConstraints.append(blackWhiteImageView.widthAnchor.constraint(equalTo: containerView2.widthAnchor, multiplier: 0.9))
-        landscapeConstraints.append(blackWhiteImageView.heightAnchor.constraint(equalTo: containerView2.heightAnchor, multiplier: 0.9))
         
         
         updateConstraints()
@@ -243,6 +266,8 @@ class DrawingViewController: UIViewController {
         drawingView.clear()
     }
     
+
+        
     
     
     func getDrawnPhoto(sender: Any?) -> NSData {
@@ -300,6 +325,10 @@ class DrawingViewController: UIViewController {
             if xPercent > 1 {xPercent = 1}
             updateBackgroundGray(percent: xPercent)
         }
+    }
+    
+    func handleColorUpdate(percent: CGFloat) {
+        
     }
     
     @objc func updateBackgroundGray(percent: CGFloat) {
