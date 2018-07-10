@@ -48,12 +48,29 @@ class SizeCircle: UIView {
         
         squareView.translatesAutoresizingMaskIntoConstraints = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        
+                
         squareView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         squareView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        squareView.widthAnchor.constraint(equalTo: widthAnchor, constant: -circleInset).isActive = true
-        squareView.heightAnchor.constraint(equalTo: squareView.widthAnchor).isActive = true
-
+        let lessThanWidth = squareView.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor)
+        let lessThanHeight = squareView.heightAnchor.constraint(lessThanOrEqualTo: heightAnchor)
+        lessThanWidth.priority = UILayoutPriority.required
+        lessThanHeight.priority = UILayoutPriority.required
+        let aspectHeight = squareView.heightAnchor.constraint(equalTo: squareView.widthAnchor)
+        let aspectWidth = squareView.widthAnchor.constraint(equalTo: squareView.heightAnchor)
+        aspectHeight.priority = UILayoutPriority.defaultHigh
+        aspectWidth.priority = UILayoutPriority.defaultHigh
+        let maxWidth = squareView.widthAnchor.constraint(equalTo: widthAnchor, constant: -circleInset)
+        let maxHeight = squareView.heightAnchor.constraint(equalTo: heightAnchor, constant: -circleInset)
+        maxWidth.priority = UILayoutPriority.defaultLow
+        maxHeight.priority = UILayoutPriority.defaultLow
+        
+        lessThanWidth.isActive = true
+        lessThanHeight.isActive = true
+        aspectWidth.isActive = true
+        aspectHeight.isActive = true
+        maxWidth.isActive = true
+        maxHeight.isActive = true
+        
         imageView.bottomAnchor.constraint(equalTo: squareView.bottomAnchor, constant: -circleInset).isActive = true
         imageView.heightAnchor.constraint(equalToConstant: 300).isActive = true
         imageView.centerXAnchor.constraint(equalTo: squareView.centerXAnchor).isActive = true
@@ -62,12 +79,7 @@ class SizeCircle: UIView {
     }
     
     @objc func handleUpdate(recognizer: ContinousGestureRecognizer) {
-        if recognizer.state == .began {
-            
-        } else {
-            guard recognizer.numberOfTouches != 0 else {return}
-            var y = recognizer.location(ofTouch: recognizer.numberOfTouches-1, in: self).y
-        }
+
     }
     
     override func draw(_ rect: CGRect) {

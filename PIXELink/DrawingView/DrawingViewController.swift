@@ -128,12 +128,13 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
         let containerView1 = UIView()
         let containerView1_2 = UIView()
         let sizeCircle = SizeCircle()
-        let colorCircle = ColorCircle(frame: CGRect.zero)
-        let darknessCircle = DarknessCircle(frame: CGRect.zero)
+        let colorCircle = ColorCircle()
+        let darknessCircle = DarknessCircle()
         let circlesView = UIView()
                 
         sizeCircle.backgroundColor = .clear
         colorCircle.backgroundColor = .clear
+        colorCircle.receiver = self
         darknessCircle.backgroundColor = .clear
         
         view.addSubview(containerView1)
@@ -328,7 +329,7 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
     }
     
     func handleColorUpdate(percent: CGFloat) {
-        
+        drawingView.changeCurrentColor(newColor: UIColor(hue: percent, saturation: 1, lightness: 0.5))
     }
     
     @objc func updateBackgroundGray(percent: CGFloat) {

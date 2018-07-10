@@ -65,6 +65,10 @@ class ContinousGestureRecognizer: UIGestureRecognizer {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
         self.state = .changed
     }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        self.state = .ended
+    }
 }
 
 
