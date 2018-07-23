@@ -72,6 +72,30 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
         iv.layer.masksToBounds = true
         return iv
     }()
+    var trashButton: UIButton = {
+        let trash = UIButton()
+        trash.setImage(UIImage(named: "trash"), for: .normal)
+        trash.imageView?.contentMode = .scaleAspectFit
+        return trash
+    }()
+    var searchButton: UIButton = {
+        let search = UIButton()
+        search.setTitle("Search", for: .normal)
+        search.setTitleColor(UIColor.white, for: .normal)
+        search.setTitleColor(UIColor.gray, for: UIControlState.highlighted)
+        search.layer.cornerRadius = 25
+        search.layer.borderWidth = 2
+        search.layer.borderColor = UIColor.white.cgColor
+        search.layer.masksToBounds = true
+        search.backgroundColor = UIColor(white: 0, alpha: 0.3)
+        return search
+    }()
+    var undoButton: UIButton = {
+        let undoButton = UIButton()
+        undoButton.setImage(UIImage(named: "undo-white"), for: .normal)
+        undoButton.imageView?.contentMode = .scaleAspectFit
+        return undoButton
+    }()
     
     let hueRecognizer = ContinousGestureRecognizer()
     let grayRecognizer = ContinousGestureRecognizer()
@@ -81,6 +105,10 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
         super.viewDidLoad()
         
         setupViews()
+        
+        searchButton.addTarget(self, action: #selector(search), for: .touchUpInside)
+        trashButton.addTarget(self, action: #selector(handleClear(sender:)), for: .touchUpInside)
+        undoButton.addTarget(self, action: #selector(handleUndo(sender:)), for: .touchUpInside)
         
         hueRecognizer.addTarget(self, action: #selector(handleSliderUpdate(sender:)))
         grayRecognizer.addTarget(self, action: #selector(handleGrayUpdate(sender:)))
@@ -108,8 +136,9 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
         updateProcessingLabel()
         processingLabel.sizeToFit()
         processingItem.width = 50
-        navigationItem.rightBarButtonItems = [UIBarButtonItem(title: "Search", style: .plain, target: self, action: #selector(search)), UIBarButtonItem(barButtonSystemItem: .undo, target: self, action: #selector(handleUndo(sender:))), processingItem]
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Clear", style: .plain, target: self, action: #selector(handleClear(sender:)))
+        navigationItem.rightBarButtonItems = [processingItem]
+        navigationItem.title = "Draw to Search"
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor : UIColor.white, NSAttributedStringKey.font : UIFont(name: AppDelegate.mainFont, size: 20)!]
     }
     
     func updateProcessingLabel() {
@@ -125,13 +154,14 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
     
     func layoutAndConstrainViews() {
         
+        let circlesView = UIView()
         let containerView1 = UIView()
         let containerView1_2 = UIView()
         let sizeCircle = SizeCircle()
         let colorCircle = ColorCircle()
         let darknessCircle = DarknessCircle()
-        let circlesView = UIView()
-                
+        
+        
         sizeCircle.backgroundColor = .clear
         colorCircle.backgroundColor = .clear
         colorCircle.receiver = self
@@ -148,6 +178,9 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
         circlesView.addSubview(sizeCircle)
         circlesView.addSubview(darknessCircle)
         containerView1.addSubview(containerView1_2)
+        containerView1_2.addSubview(trashButton)
+        containerView1_2.addSubview(searchButton)
+        containerView1_2.addSubview(undoButton)
         blackWhiteGradientMask.transform = blackWhiteGradientMask.transform.rotated(by: -.pi/2)
         hueImageView.addSubview(blackWhiteGradientMask)
         
@@ -159,6 +192,7 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
         blackWhiteImageView.addGestureRecognizer(grayRecognizer)
         blackWhiteImageView.isUserInteractionEnabled = true
         
+        trashButton.translatesAutoresizingMaskIntoConstraints = false
         containerView1.translatesAutoresizingMaskIntoConstraints = false
         circlesView.translatesAutoresizingMaskIntoConstraints = false
         sizeCircle.translatesAutoresizingMaskIntoConstraints = false
@@ -169,6 +203,9 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
         hueImageView.translatesAutoresizingMaskIntoConstraints = false
         blackWhiteGradientMask.translatesAutoresizingMaskIntoConstraints = false
         blackWhiteImageView.translatesAutoresizingMaskIntoConstraints = false
+        searchButton.translatesAutoresizingMaskIntoConstraints = false
+        undoButton.translatesAutoresizingMaskIntoConstraints = false
+        
         
         portraitConstraints.append(drawingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor))
         portraitConstraints.append(drawingView.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor))
@@ -205,7 +242,21 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
         portraitConstraints.append(containerView1_2.topAnchor.constraint(equalTo: circlesView.bottomAnchor))
         portraitConstraints.append(containerView1_2.widthAnchor.constraint(equalTo: containerView1.widthAnchor))
         portraitConstraints.append(containerView1_2.bottomAnchor.constraint(equalTo: containerView1.bottomAnchor))
+        
+        portraitConstraints.append(trashButton.rightAnchor.constraint(equalTo: containerView1_2.rightAnchor, constant: -10))
+        portraitConstraints.append(trashButton.leftAnchor.constraint(equalTo: searchButton.rightAnchor, constant: 10))
+        portraitConstraints.append(trashButton.centerYAnchor.constraint(equalTo: containerView1_2.centerYAnchor))
 
+        portraitConstraints.append(searchButton.centerYAnchor.constraint(equalTo: containerView1_2.centerYAnchor))
+        portraitConstraints.append(searchButton.centerXAnchor.constraint(equalTo: containerView1_2.centerXAnchor))
+        portraitConstraints.append(searchButton.widthAnchor.constraint(equalTo: containerView1_2.widthAnchor, multiplier: 0.6))
+        portraitConstraints.append(searchButton.heightAnchor.constraint(lessThanOrEqualTo: containerView1_2.heightAnchor, multiplier: 0.9))
+        portraitConstraints.append(searchButton.heightAnchor.constraint(equalToConstant: 50))
+        
+        portraitConstraints.append(undoButton.centerYAnchor.constraint(equalTo: containerView1_2.centerYAnchor))
+        portraitConstraints.append(undoButton.rightAnchor.constraint(equalTo: searchButton.leftAnchor, constant: -10))
+        portraitConstraints.append(undoButton.leftAnchor.constraint(equalTo: containerView1_2.leftAnchor, constant: 10))
+        
         
         
         landscapeConstraints.append(drawingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor))
@@ -367,7 +418,7 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
             let dataFetchSortDescriptor = NSSortDescriptor(key: "localIdentifier", ascending: true)
             dataFetchRequest.sortDescriptors = [dataFetchSortDescriptor]
             do {
-                // Fetching 32x32 data stored for photos
+                // Fetching 16x16 data stored for photos
                 let dataFetchResult = try PersistenceService.context.fetch(dataFetchRequest)
                 self.dataArray = dataFetchResult
             } catch let error {
@@ -475,7 +526,7 @@ class DrawingViewController: UIViewController, ColorInfoReceiver {
     // Resizes photo and returns a data object of RBGA Pixels
     func getPhotoData(image: UIImage) -> NSData {
         
-        let resizedPhoto = resizeImage(image: image, targetSize: CGSize(width: 32, height: 32))
+        let resizedPhoto = resizeImage(image: image, targetSize: CGSize(width: 16, height: 16))
         guard let cgImage = resizedPhoto.cgImage else { return NSData() } // 1
         
         let width = Int(resizedPhoto.size.width)

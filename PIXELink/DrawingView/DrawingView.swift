@@ -48,6 +48,7 @@ class DrawingView: UIView, PinchContentDelegate {
         backgroundColor = UIColor(red: 250/255, green: 250/255, blue: 250/255, alpha: 1)
         foregroundView.backgroundColor = UIColor.clear
         isMultipleTouchEnabled = true
+        clipsToBounds = true
         
         addSubview(transparencyView)
         addSubview(foregroundView)

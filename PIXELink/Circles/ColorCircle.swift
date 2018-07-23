@@ -19,6 +19,12 @@ class ColorCircle: UIView {
     var currentColor = UIColor.red.cgColor
     var imageViewHeightAnchor = NSLayoutConstraint()
     
+    let colorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Color"
+        label.textColor = .white
+        return label
+    }()
     let imageView: UIImageView = {
         let iv = UIImageView()
         iv.image = UIImage(named: "hue upright")
@@ -54,12 +60,14 @@ class ColorCircle: UIView {
         imageView.isHidden = true
         
         addSubview(squareView)
+        addSubview(colorLabel)
         squareView.addSubview(imageView)
         imageView.addSubview(lineView)
         
         squareView.translatesAutoresizingMaskIntoConstraints = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
         lineView.translatesAutoresizingMaskIntoConstraints = false
+        colorLabel.translatesAutoresizingMaskIntoConstraints = false
         
         squareView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         squareView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
@@ -94,6 +102,9 @@ class ColorCircle: UIView {
         lineView.heightAnchor.constraint(equalToConstant: 4).isActive = true
         lineViewYConstraint = lineView.centerYAnchor.constraint(equalTo: imageView.bottomAnchor)
         lineViewYConstraint.isActive = true
+        
+        colorLabel.topAnchor.constraint(equalTo: squareView.bottomAnchor).isActive = true
+        colorLabel.centerXAnchor.constraint(equalTo: squareView.centerXAnchor).isActive = true
         
     }
     

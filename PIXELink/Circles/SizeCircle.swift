@@ -24,6 +24,12 @@ class SizeCircle: UIView {
         iv.layer.masksToBounds = true
         return iv
     }()
+    let sizeLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Size"
+        label.textColor = .white
+        return label
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -44,10 +50,12 @@ class SizeCircle: UIView {
     func setupViews() {
         
         addSubview(squareView)
+        addSubview(sizeLabel)
         squareView.addSubview(imageView)
         
         squareView.translatesAutoresizingMaskIntoConstraints = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        sizeLabel.translatesAutoresizingMaskIntoConstraints = false
                 
         squareView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         squareView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
@@ -75,6 +83,9 @@ class SizeCircle: UIView {
         imageView.heightAnchor.constraint(equalToConstant: 300).isActive = true
         imageView.centerXAnchor.constraint(equalTo: squareView.centerXAnchor).isActive = true
         imageView.widthAnchor.constraint(equalToConstant: 100).isActive = true
+        
+        sizeLabel.topAnchor.constraint(equalTo: squareView.bottomAnchor, constant: 0).isActive = true
+        sizeLabel.centerXAnchor.constraint(equalTo: squareView.centerXAnchor).isActive = true
         
     }
     

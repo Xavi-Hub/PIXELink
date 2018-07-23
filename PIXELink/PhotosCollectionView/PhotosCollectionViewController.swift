@@ -155,11 +155,11 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
     }
 
 //    func processDifferences() {
-//        let rawDrawnData = drawnPhoto.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
-//        let drawnPixels = UnsafeBufferPointer<RGBAPixel>(start: rawDrawnData, count: 32 * 32)
+//        let rawDrawnData = drawnPhoto.bytes.bindMemory(to: RGBAPixel.self, capacity: 16 * 16)
+//        let drawnPixels = UnsafeBufferPointer<RGBAPixel>(start: rawDrawnData, count: 16 * 16)
 //        for photo in dataArray {
-//            let rawPhotoData = photo.photoData?.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
-//            let photoPixels = UnsafeBufferPointer<RGBAPixel>(start: rawPhotoData, count: 32 * 32)
+//            let rawPhotoData = photo.photoData?.bytes.bindMemory(to: RGBAPixel.self, capacity: 16 * 16)
+//            let photoPixels = UnsafeBufferPointer<RGBAPixel>(start: rawPhotoData, count: 16 * 16)
 //            var photoDifference = 0.0
 //            var processedPixels = 0
 //            for i in 0..<photoPixels.count {
@@ -188,15 +188,15 @@ class PhotosCollectionViewController: UICollectionViewController, UICollectionVi
             DispatchQueue.main.async {
                 self.toggleCalculatingLayers(hidden: false)
             }
-            let rawDrawnData = self.drawnPhoto.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
-            let drawnPixels = UnsafeBufferPointer<RGBAPixel>(start: rawDrawnData, count: 32 * 32)
+            let rawDrawnData = self.drawnPhoto.bytes.bindMemory(to: RGBAPixel.self, capacity: 16 * 16)
+            let drawnPixels = UnsafeBufferPointer<RGBAPixel>(start: rawDrawnData, count: 16 * 16)
             for photo in self.dataArray {
                 if !self.dispatchItem.isCancelled {
                     if photo.photoData == nil {
                         continue
                     }
-                    let rawPhotoData = photo.photoData?.bytes.bindMemory(to: RGBAPixel.self, capacity: 32 * 32)
-                    let photoPixels = UnsafeBufferPointer<RGBAPixel>(start: rawPhotoData, count: 32 * 32)
+                    let rawPhotoData = photo.photoData?.bytes.bindMemory(to: RGBAPixel.self, capacity: 16 * 16)
+                    let photoPixels = UnsafeBufferPointer<RGBAPixel>(start: rawPhotoData, count: 16 * 16)
                     var photoDifference = 0.0
                     var processedPixels = 0
                     for i in 0..<photoPixels.count {
